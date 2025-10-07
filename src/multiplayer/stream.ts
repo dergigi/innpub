@@ -748,8 +748,77 @@ function pruneChatMessages() {
   }
 }
 
+/**
+ * Calculate Euclidean distance between two positions
+ */
+function calculateDistance(x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Convert distance to volume using inverse square law with configurable parameters.
+ * - Very close (< 100px): full volume (1.0)
+ * - Medium distance (100-400px): gradual falloff
+ * - Far away (> 400px): very quiet (approaching 0)
+ */
+function distanceToVolume(distance: number): number {
+  // Reference distance where volume starts to fall off
+  const referenceDistance = 100;
+  
+  // Maximum audible distance (volume approaches 0)
+  const maxDistance = 800;
+  
+  if (distance < referenceDistance) {
+    // Full volume when very close
+    return 1.0;
+  }
+  
+  if (distance > maxDistance) {
+    // Nearly silent at max distance
+    return 0.01;
+  }
+  
+  // Inverse square law falloff with smoothing
+  // This creates a natural-feeling audio attenuation
+  const normalizedDistance = (distance - referenceDistance) / (maxDistance - referenceDistance);
+  const volume = Math.pow(1 - normalizedDistance, 2);
+  
+  // Clamp between min and max values
+  return Math.max(0.01, Math.min(1.0, volume));
+}
+
 function updateAudioMix(): void {
   syncRemoteAudioPlayback();
+  
+  // Apply positional audio if we have a local player position
+  if (!localState) {
+    return;
+  }
+  
+  const localX = localState.x;
+  const localY = localState.y;
+  
+  // Update volume for each remote audio session based on distance
+  for (const session of remoteAudioSessions.values()) {
+    if (!session.npub) {
+      continue;
+    }
+    
+    // Get the remote player's position
+    const remotePlayer = players.get(session.npub);
+    if (!remotePlayer) {
+      continue;
+    }
+    
+    // Calculate distance between local and remote player
+    const distance = calculateDistance(localX, localY, remotePlayer.x, remotePlayer.y);
+    
+    // Convert distance to volume and apply it
+    const volume = distanceToVolume(distance);
+    session.emitter.volume.set(volume);
+  }
 }
 
 function now(): number {
@@ -1048,6 +1117,7 @@ function addSourceState(sourceKey: string, state: PlayerState) {
   players.set(state.npub, enriched);
   trackProfile(state.npub);
   syncPlayersToStore();
+  updateAudioMix();
 }
 
 function removeSource(sourceKey: string) {
@@ -1080,6 +1150,7 @@ function removeSource(sourceKey: string) {
   }
 
   syncPlayersToStore();
+  updateAudioMix();
 }
 
 function clearRemoteSources() {
