@@ -1102,6 +1102,36 @@ body {
   font-family: "Courier New", monospace;
 }
 
+.player-item__volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.player-item__volume-bar {
+  flex: 1;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.player-item__volume-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+  transition: width 0.2s ease-out;
+  border-radius: 3px;
+}
+
+.player-item__volume-text {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  min-width: 36px;
+  text-align: right;
+  font-family: "Courier New", monospace;
+}
+
 .players-drawer__empty {
   padding: 40px 20px;
   text-align: center;

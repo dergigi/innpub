@@ -97,6 +97,7 @@ const sourcesByNpub = new Map<string, Set<string>>();
 const profiles = new Map<string, PlayerProfile>();
 const profileSubscriptions = new Map<string, { unsubscribe: () => void }>();
 const speakingLevels = new Map<string, number>();
+const volumeLevels = new Map<string, number>();
 const roomsByNpub = new Map<string, string[]>();
 const chatMessages = new Map<string, ChatMessage>();
 let chatSessionEpoch = Date.now();
@@ -142,6 +143,7 @@ function toStoreRemotePlayer(state: PlayerState): StoreRemotePlayerState {
     facing: state.facing,
     rooms: state.rooms ? [...state.rooms] : [],
     speakingLevel: state.speakingLevel ?? 0,
+    volume: volumeLevels.get(state.npub),
     updatedAt: Date.now(),
   };
 }
@@ -657,6 +659,7 @@ function handleRemoteAudioRemoved(path: Moq.Path.Valid) {
   session.emitter.close();
   if (session.npub) {
     clearSpeakingLevel(session.npub);
+    volumeLevels.delete(session.npub);
   }
 }
 
@@ -818,7 +821,13 @@ function updateAudioMix(): void {
     // Convert distance to volume and apply it
     const volume = distanceToVolume(distance);
     session.emitter.volume.set(volume);
+    
+    // Store the volume level so it can be synced to the UI
+    volumeLevels.set(session.npub, volume);
   }
+  
+  // Sync updated volumes to the store
+  syncPlayersToStore();
 }
 
 function now(): number {

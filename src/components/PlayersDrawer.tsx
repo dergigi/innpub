@@ -11,7 +11,7 @@ export interface PlayersDrawerProps {
   currentPlayerNpub: string | null;
 }
 
-const PlayerItem: Component<{pubkey: string, speaking?: boolean}> = (props) => {
+const PlayerItem: Component<{pubkey: string, speaking?: boolean, volume?: number}> = (props) => {
 	const profile = from(eventStore.profile(props.pubkey));
 
   return (
@@ -29,6 +29,19 @@ const PlayerItem: Component<{pubkey: string, speaking?: boolean}> = (props) => {
         <div class="player-item__npub" title={npubEncode(props.pubkey)}>
           {npubEncode(props.pubkey).slice(0, 16)}…
         </div>
+        <Show when={props.volume !== undefined}>
+          <div class="player-item__volume">
+            <div class="player-item__volume-bar">
+              <div 
+                class="player-item__volume-fill" 
+                style={{ width: `${(props.volume ?? 0) * 100}%` }}
+              />
+            </div>
+            <div class="player-item__volume-text">
+              {Math.round((props.volume ?? 0) * 100)}%
+            </div>
+          </div>
+        </Show>
       </div>
     </div>
   );
@@ -62,6 +75,7 @@ export const PlayersDrawer: Component<PlayersDrawerProps> = (props) => {
                 <PlayerItem
                   pubkey={player.npub}
                   speaking={player.speakingLevel > 0.02}
+                  volume={player.volume}
                 />
               )}
             </For>
