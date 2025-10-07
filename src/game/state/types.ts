@@ -28,7 +28,9 @@ export interface LocalPlayerState extends PlayerPresence {
   avatarUrl?: string | null;
 }
 
-export interface RemotePlayerState extends PlayerPresence {}
+export interface RemotePlayerState extends PlayerPresence {
+  volume?: number;
+}
 
 export interface PlayerProfileEntry {
   npub: string;
