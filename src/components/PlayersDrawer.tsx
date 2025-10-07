@@ -68,6 +68,7 @@ export const PlayersDrawer: Component<PlayersDrawerProps> = (props) => {
 							<PlayerItem
 								pubkey={props.currentPlayerNpub!}
 								speaking={false}
+								volume={1.0}
 							/>
 						</Show>
             <For each={props.players}>
