@@ -762,16 +762,16 @@ function calculateDistance(x1: number, y1: number, x2: number, y2: number): numb
 
 /**
  * Convert distance to volume using inverse square law with configurable parameters.
- * - Very close (< 100px): full volume (1.0)
- * - Medium distance (100-400px): gradual falloff
- * - Far away (> 400px): very quiet (approaching 0)
+ * - Very close (< 50px): full volume (1.0)
+ * - Medium distance (50-250px): gradual falloff
+ * - Far away (> 250px): silent (0%)
  */
 function distanceToVolume(distance: number): number {
   // Reference distance where volume starts to fall off
-  const referenceDistance = 100;
+  const referenceDistance = 50;
   
-  // Maximum audible distance (volume approaches 0)
-  const maxDistance = 800;
+  // Maximum audible distance (volume reaches 0)
+  const maxDistance = 250;
   
   if (distance < referenceDistance) {
     // Full volume when very close
@@ -779,8 +779,8 @@ function distanceToVolume(distance: number): number {
   }
   
   if (distance > maxDistance) {
-    // Nearly silent at max distance
-    return 0.01;
+    // Silent at max distance
+    return 0.0;
   }
   
   // Inverse square law falloff with smoothing
@@ -789,7 +789,7 @@ function distanceToVolume(distance: number): number {
   const volume = Math.pow(1 - normalizedDistance, 2);
   
   // Clamp between min and max values
-  return Math.max(0.01, Math.min(1.0, volume));
+  return Math.max(0.0, Math.min(1.0, volume));
 }
 
 function updateAudioMix(): void {
